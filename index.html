@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fluent notes</title>
+  </head>
+  <body>
+    <style>
+      main {
+        display: flex;
+        flex-direction: column;
+      }
+      textarea {
+        resize: none;
+      }
+    </style>
+
+    <main>
+      <textarea autofocus></textarea>
+    </main>
+
+    <script>
+      const splitRegex = /\n\n/;
+      const firstTextArea = document.querySelector("textarea");
+      configureTextArea(firstTextArea);
+
+      function configureTextArea(textArea) {
+        // Auto resize
+        // From https://stackoverflow.com/a/25621277
+        textAreastyle = "height:16px;overflow-y:hidden;";
+
+        textArea.addEventListener("input", handleTextAreaChange);
+      }
+
+      function updateTextAreaSize(textArea) {
+        // Auto resize
+        // From https://stackoverflow.com/a/25621277
+        textArea.style.height = "auto";
+        textArea.style.height = textArea.scrollHeight + "px";
+      }
+
+      function handleTextAreaChange(e) {
+        const targetElement = e.target;
+        console.log("CHANGE:", targetElement.value);
+
+        updateTextAreaSize(targetElement);
+
+        if (splitRegex.test(targetElement.value)) {
+          console.log("SPLIT!");
+
+          const splitted = targetElement.value.split(splitRegex);
+          // alert(JSON.stringify(splitted, null, 2));
+
+          const firstText = splitted.shift();
+          targetElement.value = firstText;
+          updateTextAreaSize(targetElement);
+
+          let currentElement = targetElement;
+          splitted.forEach((text) => {
+            const newTextArea = document.createElement("textarea");
+            currentElement.after(newTextArea);
+            configureTextArea(newTextArea);
+            newTextArea.value = text;
+            newTextArea.focus();
+            currentElement = newTextArea;
+          });
+        }
+      }
+
+      // TEST
+      firstTextArea.value = `@test tkrkjyryr
+- blablabla test 
+dsgdgdsgdsg
+dsgdsgdsg
+dsgsdg
+
+Ceci est un todo @todo
+
+
+tutu
+
+
+
+tata
+
+`;
+      firstTextArea.dispatchEvent(new Event("input"));
+    </script>
+  </body>
+</html>
