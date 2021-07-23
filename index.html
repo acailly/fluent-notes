@@ -22,7 +22,7 @@
     </main>
 
     <script>
-      const splitRegex = /\n\n/;
+      const splitRegex = /^\n|\n\n*\n/;
       const firstTextArea = document.querySelector("textarea");
       configureTextArea(firstTextArea);
 
@@ -32,6 +32,7 @@
         textAreastyle = "height:16px;overflow-y:hidden;";
 
         textArea.addEventListener("input", handleTextAreaChange);
+        textArea.addEventListener("keydown", handleKeyDown);
       }
 
       function updateTextAreaSize(textArea) {
@@ -47,6 +48,7 @@
 
         updateTextAreaSize(targetElement);
 
+        // Split when having two line breaks in a row
         if (splitRegex.test(targetElement.value)) {
           console.log("SPLIT!");
 
@@ -63,9 +65,77 @@
             currentElement.after(newTextArea);
             configureTextArea(newTextArea);
             newTextArea.value = text;
+            updateTextAreaSize(newTextArea);
             newTextArea.focus();
+            newTextArea.selectionStart = 0;
+            newTextArea.selectionEnd = 0;
             currentElement = newTextArea;
           });
+        }
+      }
+
+      function handleKeyDown(e) {
+        const targetElement = e.target;
+        // alert(`keydown event. key property value is "${e.key} (${e.keyCode})"`);
+
+        // Join textareas on backspace at the start
+        if (
+          !e.repeat &&
+          targetElement.selectionStart === targetElement.selectionEnd &&
+          e.keyCode === 8 &&
+          targetElement.selectionStart === 0
+        ) {
+          console.log("GROUP WITH PREVIOUS!");
+
+          const previousTextArea = targetElement.previousSibling;
+          if (previousTextArea.nodeName.toLowerCase() === "textarea") {
+            const previousValue = previousTextArea.value;
+            const currentValue = targetElement.value;
+
+            const previousValueWithOrWithoutLineBreak =
+              previousValue && currentValue
+                ? previousValue + "\n"
+                : previousValue;
+
+            const newValue = previousValueWithOrWithoutLineBreak + currentValue;
+            previousTextArea.value = newValue;
+            updateTextAreaSize(previousTextArea);
+            previousTextArea.focus();
+            previousTextArea.selectionStart =
+              previousValueWithOrWithoutLineBreak.length;
+            previousTextArea.selectionEnd =
+              previousValueWithOrWithoutLineBreak.length;
+
+            targetElement.remove();
+
+            e.preventDefault();
+          }
+        }
+
+        // Join textareas on delete at the end
+        if (
+          !e.repeat &&
+          targetElement.selectionStart === targetElement.selectionEnd &&
+          e.keyCode === 46 &&
+          targetElement.selectionStart === targetElement.value.length
+        ) {
+          console.log("GROUP WITH NEXT!");
+
+          const nextTextArea = targetElement.nextSibling;
+          if (nextTextArea.nodeName.toLowerCase() === "textarea") {
+            const previousValue = targetElement.value;
+            const currentValue = nextTextArea.value;
+
+            const newValue = previousValue + currentValue;
+            targetElement.value = newValue;
+            updateTextAreaSize(targetElement);
+            targetElement.selectionStart = previousValue.length;
+            targetElement.selectionEnd = previousValue.length;
+
+            nextTextArea.remove();
+
+            e.preventDefault();
+          }
         }
       }
 
