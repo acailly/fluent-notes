@@ -80,7 +80,6 @@
 
         // Join textareas on backspace at the start
         if (
-          !e.repeat &&
           targetElement.selectionStart === targetElement.selectionEnd &&
           e.keyCode === 8 &&
           targetElement.selectionStart === 0
@@ -114,7 +113,6 @@
 
         // Join textareas on delete at the end
         if (
-          !e.repeat &&
           targetElement.selectionStart === targetElement.selectionEnd &&
           e.keyCode === 46 &&
           targetElement.selectionStart === targetElement.value.length
@@ -123,14 +121,19 @@
 
           const nextTextArea = targetElement.nextSibling;
           if (nextTextArea.nodeName.toLowerCase() === "textarea") {
-            const previousValue = targetElement.value;
-            const currentValue = nextTextArea.value;
+            const currentValue = targetElement.value;
+            const nextValue = nextTextArea.value;
 
-            const newValue = previousValue + currentValue;
+            const currentValueWithOrWithoutLineBreak =
+              currentValue && nextValue ? currentValue + "\n" : currentValue;
+
+            const newValue = currentValueWithOrWithoutLineBreak + nextValue;
             targetElement.value = newValue;
             updateTextAreaSize(targetElement);
-            targetElement.selectionStart = previousValue.length;
-            targetElement.selectionEnd = previousValue.length;
+            targetElement.selectionStart =
+              currentValueWithOrWithoutLineBreak.length;
+            targetElement.selectionEnd =
+              currentValueWithOrWithoutLineBreak.length;
 
             nextTextArea.remove();
 
@@ -141,7 +144,7 @@
 
       // TEST
       firstTextArea.value = `@test tkrkjyryr
-- blablabla test 
+- blablabla test
 dsgdgdsgdsg
 dsgdsgdsg
 dsgsdg
